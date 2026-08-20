@@ -51,6 +51,7 @@ const pageSize = ref(20)
 const total = ref(0)
 
 const showColumns = ref(false)
+const showFilters = ref(false)
 
 const columns = ref<ColumnDef[]>([
   { key: 'index', label: '#', visible: true },
@@ -340,61 +341,73 @@ onUnmounted(() => {
           placeholder="Cari nama / NISN / NIK..."
         />
       </div>
-      <div class="flex w-full flex-col gap-1">
-        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Kabupaten</label>
-        <select ref="kabupatenSelectRef"></select>
-      </div>
-      <div class="flex w-full flex-col gap-1">
-        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Kecamatan</label>
-        <select ref="kecamatanSelectRef"></select>
-      </div>
-      <div class="flex w-full flex-col gap-1">
-        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Kelas</label>
-        <select ref="kelasSelectRef"></select>
-      </div>
-      <div class="flex w-full flex-col gap-1">
-        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Sekolah</label>
-        <select ref="sekolahSelectRef"></select>
-      </div>
-      <div class="flex w-full flex-col gap-1">
-        <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Rombel</label>
-        <select ref="rombelSelectRef"></select>
-      </div>
+
       <button
-        class="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:bg-slate-300 dark:disabled:bg-slate-600"
+        class="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700/40 md:hidden"
+        @click="showFilters = !showFilters"
+        :aria-expanded="showFilters"
+      >
+        <i class="bi bi-funnel"></i> {{ showFilters ? 'Sembunyikan Filter' : 'Tampilkan Filter' }}
+      </button>
+
+      <div class="flex flex-col gap-3 md:flex" :class="showFilters ? 'flex' : 'hidden'">
+        <div class="flex w-full flex-col gap-1">
+          <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Kabupaten</label>
+          <select ref="kabupatenSelectRef"></select>
+        </div>
+        <div class="flex w-full flex-col gap-1">
+          <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Kecamatan</label>
+          <select ref="kecamatanSelectRef"></select>
+        </div>
+        <div class="flex w-full flex-col gap-1">
+          <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Kelas</label>
+          <select ref="kelasSelectRef"></select>
+        </div>
+        <div class="flex w-full flex-col gap-1">
+          <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Sekolah</label>
+          <select ref="sekolahSelectRef"></select>
+        </div>
+        <div class="flex w-full flex-col gap-1">
+          <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Rombel</label>
+          <select ref="rombelSelectRef"></select>
+        </div>
+        <button
+          class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700/40"
+          @click="resetFilters"
+        >
+          <i class="bi bi-arrow-counterclockwise"></i> Reset Filter
+        </button>
+        <div class="relative">
+          <button
+            class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+            @click="showColumns = !showColumns"
+          >
+            <i class="bi bi-columns"></i> Kolom
+          </button>
+          <div
+            v-if="showColumns"
+            class="absolute right-0 top-full z-10 mt-1 flex w-48 flex-col gap-1.5 rounded-lg border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-800"
+          >
+            <label
+              v-for="col in columns"
+              :key="col.key"
+              class="flex cursor-pointer items-center gap-2 text-sm whitespace-nowrap text-slate-700 dark:text-slate-100"
+            >
+              <input type="checkbox" v-model="col.visible" /> {{ col.label }}
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <button
+        class="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white hover:bg-indigo-700 disabled:bg-slate-300 dark:disabled:bg-slate-600"
         @click="fetchStudents()"
         :disabled="loading"
       >
         <i class="bi bi-arrow-clockwise"></i> {{ loading ? 'Memuat...' : 'Refresh' }}
       </button>
       <button
-        class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700/40"
-        @click="resetFilters"
-      >
-        <i class="bi bi-arrow-counterclockwise"></i> Reset Filter
-      </button>
-      <div class="relative">
-        <button
-          class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-          @click="showColumns = !showColumns"
-        >
-          <i class="bi bi-columns"></i> Kolom
-        </button>
-        <div
-          v-if="showColumns"
-          class="absolute right-0 top-full z-10 mt-1 flex w-48 flex-col gap-1.5 rounded-lg border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-800"
-        >
-          <label
-            v-for="col in columns"
-            :key="col.key"
-            class="flex cursor-pointer items-center gap-2 text-sm whitespace-nowrap text-slate-700 dark:text-slate-100"
-          >
-            <input type="checkbox" v-model="col.visible" /> {{ col.label }}
-          </label>
-        </div>
-      </div>
-      <button
-        class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+        class="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700/40"
         @click="showExport = true"
         :disabled="exporting"
       >
@@ -467,46 +480,87 @@ onUnmounted(() => {
       <div v-if="loading" class="p-8 text-center text-slate-500 dark:text-slate-400">Memuat data...</div>
       <div v-else-if="error" class="p-8 text-center text-red-600">{{ error }}</div>
 
-      <div v-if="students.length" class="min-w-0 flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
-        <table class="w-full border-collapse text-left">
-          <thead>
-            <tr>
-              <th
-                v-for="col in visibleColumns"
-                :key="col.key"
-                class="sticky top-0 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600 dark:bg-slate-700/60 dark:text-slate-200"
+      <div v-if="students.length">
+        <div class="hidden min-w-0 flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 md:block">
+          <table class="w-full border-collapse text-left">
+            <thead>
+              <tr>
+                <th
+                  v-for="col in visibleColumns"
+                  :key="col.key"
+                  class="sticky top-0 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600 dark:bg-slate-700/60 dark:text-slate-200"
+                >
+                  {{ col.label }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(student, index) in students"
+                :key="student.id"
+                class="hover:bg-slate-50 dark:hover:bg-slate-700/40"
               >
-                {{ col.label }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(student, index) in students"
-              :key="student.id"
-              class="hover:bg-slate-50 dark:hover:bg-slate-700/40"
-            >
-              <td
-                v-for="col in visibleColumns"
-                :key="col.key"
-                class="border-b border-slate-100 px-3 py-2 text-left text-sm text-slate-700 dark:border-slate-700 dark:text-slate-200"
-              >
-                <template v-if="col.key === 'index'">{{ rangeStart + index }}</template>
-                <template v-else-if="col.key === 'nama'">{{ student.nama }}</template>
-                <template v-else-if="col.key === 'nisn'">{{ student.nisn }}</template>
-                <template v-else-if="col.key === 'jenis_kelamin'">{{ student.jenis_kelamin }}</template>
-                <template v-else-if="col.key === 'tanggal_lahir'">{{ student.tanggal_lahir }}</template>
-                <template v-else-if="col.key === 'rombel'">{{ student.rombel }}</template>
-                <template v-else-if="col.key === 'tingkat'">{{ student.tingkat }}</template>
-                <template v-else-if="col.key === 'nama_sekolah'">{{ student.nama_sekolah }}</template>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <td
+                  v-for="col in visibleColumns"
+                  :key="col.key"
+                  class="border-b border-slate-100 px-3 py-2 text-left text-sm text-slate-700 dark:border-slate-700 dark:text-slate-200"
+                >
+                  <template v-if="col.key === 'index'">{{ rangeStart + index }}</template>
+                  <template v-else-if="col.key === 'nama'">{{ student.nama }}</template>
+                  <template v-else-if="col.key === 'nisn'">{{ student.nisn }}</template>
+                  <template v-else-if="col.key === 'jenis_kelamin'">{{ student.jenis_kelamin }}</template>
+                  <template v-else-if="col.key === 'tanggal_lahir'">{{ student.tanggal_lahir }}</template>
+                  <template v-else-if="col.key === 'rombel'">{{ student.rombel }}</template>
+                  <template v-else-if="col.key === 'tingkat'">{{ student.tingkat }}</template>
+                  <template v-else-if="col.key === 'nama_sekolah'">{{ student.nama_sekolah }}</template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-        <div class="flex flex-wrap items-center gap-3 border-t border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+        <div class="space-y-3 md:hidden">
+          <div
+            v-for="(student, index) in students"
+            :key="student.id"
+            class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <span class="font-semibold text-slate-800 dark:text-slate-100">{{ student.nama }}</span>
+              <span class="shrink-0 text-xs text-slate-400">{{ rangeStart + index }}</span>
+            </div>
+            <dl class="mt-3 space-y-1.5 text-sm">
+              <div class="flex justify-between gap-3">
+                <dt class="text-slate-500 dark:text-slate-400">NISN</dt>
+                <dd class="text-right text-slate-700 dark:text-slate-200">{{ student.nisn }}</dd>
+              </div>
+              <div class="flex justify-between gap-3">
+                <dt class="text-slate-500 dark:text-slate-400">JK</dt>
+                <dd class="text-right text-slate-700 dark:text-slate-200">{{ student.jenis_kelamin }}</dd>
+              </div>
+              <div class="flex justify-between gap-3">
+                <dt class="text-slate-500 dark:text-slate-400">Lahir</dt>
+                <dd class="text-right text-slate-700 dark:text-slate-200">{{ student.tanggal_lahir }}</dd>
+              </div>
+              <div class="flex justify-between gap-3">
+                <dt class="text-slate-500 dark:text-slate-400">Rombel</dt>
+                <dd class="text-right text-slate-700 dark:text-slate-200">{{ student.rombel }}</dd>
+              </div>
+              <div class="flex justify-between gap-3">
+                <dt class="text-slate-500 dark:text-slate-400">Tingkat</dt>
+                <dd class="text-right text-slate-700 dark:text-slate-200">{{ student.tingkat }}</dd>
+              </div>
+              <div class="flex justify-between gap-3">
+                <dt class="text-slate-500 dark:text-slate-400">Sekolah</dt>
+                <dd class="text-right text-slate-700 dark:text-slate-200">{{ student.nama_sekolah }}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
           <button
-            class="rounded-lg border border-slate-300 px-4 py-2 text-indigo-600 disabled:text-slate-300 dark:border-slate-600 dark:text-indigo-400 dark:disabled:text-slate-600"
+            class="min-h-[44px] rounded-lg border border-slate-300 px-4 py-2 text-indigo-600 disabled:text-slate-300 dark:border-slate-600 dark:text-indigo-400 dark:disabled:text-slate-600"
             @click="goToPage(page - 1)"
             :disabled="page <= 1"
           >
@@ -514,25 +568,27 @@ onUnmounted(() => {
           </button>
           <span class="font-semibold text-slate-700 dark:text-slate-200">Halaman {{ page }} dari {{ totalPages }}</span>
           <button
-            class="rounded-lg border border-slate-300 px-4 py-2 text-indigo-600 disabled:text-slate-300 dark:border-slate-600 dark:text-indigo-400 dark:disabled:text-slate-600"
+            class="min-h-[44px] rounded-lg border border-slate-300 px-4 py-2 text-indigo-600 disabled:text-slate-300 dark:border-slate-600 dark:text-indigo-400 dark:disabled:text-slate-600"
             @click="goToPage(page + 1)"
             :disabled="page >= totalPages"
           >
             Berikutnya
           </button>
-          <span class="ml-auto">Menampilkan {{ rangeStart }}–{{ rangeEnd }} dari {{ total }}</span>
-          <label class="flex items-center gap-1">
-            Baris:
-            <select
-              v-model.number="pageSize"
-              @change="changePageSize"
-              class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-            >
-              <option :value="10">10</option>
-              <option :value="20">20</option>
-              <option :value="50">50</option>
-            </select>
-          </label>
+          <div class="flex w-full items-center justify-center gap-2 sm:w-auto sm:justify-start">
+            <span>Menampilkan {{ rangeStart }}–{{ rangeEnd }} dari {{ total }}</span>
+            <label class="flex items-center gap-1">
+              Baris:
+              <select
+                v-model.number="pageSize"
+                @change="changePageSize"
+                class="min-h-[44px] rounded-lg border border-slate-300 bg-white px-2 py-1 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              >
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </label>
+          </div>
         </div>
       </div>
 
