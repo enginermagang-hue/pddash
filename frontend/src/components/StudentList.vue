@@ -558,8 +558,8 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div class="mt-4 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
-          <div class="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+          <div class="flex flex-wrap items-center gap-3">
             <button
               class="min-h-[44px] rounded-lg border border-slate-300 px-4 py-2 text-indigo-600 disabled:text-slate-300 dark:border-slate-600 dark:text-indigo-400 dark:disabled:text-slate-600"
               @click="goToPage(page - 1)"
@@ -576,7 +576,7 @@ onUnmounted(() => {
               Berikutnya
             </button>
           </div>
-          <div class="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 pt-3 dark:border-slate-700 sm:justify-end">
+          <div class="flex flex-wrap items-center gap-2">
             <span>Menampilkan {{ rangeStart }}–{{ rangeEnd }} dari {{ total }}</span>
             <label class="flex items-center gap-1">
               Baris:
