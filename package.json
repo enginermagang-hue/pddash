@@ -1,0 +1,13 @@
+{
+  "name": "pddash",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "migrate": "node scripts/migrate-data.js"
+  },
+  "dependencies": {
+    "stream-json": "^3.5.0",
+    "stream-chain": "^4.2.5"
+  }
+}

@@ -25,6 +25,7 @@ function ensureInit() {
 }
 
 app.use(async (req, res, next) => {
+  if (req.path === '/api/login') return next()
   try {
     await ensureInit()
     next()

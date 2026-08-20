@@ -1,0 +1,72 @@
+-- Migration: initial schema
+-- Generated from backend/db.sqlite
+
+DROP TABLE IF EXISTS "file_versions";
+CREATE TABLE "file_versions" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "filename" TEXT,
+  "file_path" TEXT,
+  "version" INTEGER NOT NULL,
+  "imported_at" TEXT
+);
+
+DROP TABLE IF EXISTS "students";
+CREATE TABLE "students" (
+  "id" TEXT PRIMARY KEY,
+  "nama" TEXT,
+  "nisn" TEXT,
+  "jenis_kelamin" TEXT,
+  "tanggal_lahir" TEXT,
+  "nama_ibu_kandung" TEXT,
+  "nik" TEXT,
+  "rombel" TEXT,
+  "tingkat" TEXT,
+  "last_update" TEXT,
+  "sekolah_id" TEXT,
+  "npsn" TEXT,
+  "nama_sekolah" TEXT,
+  "bentuk" TEXT,
+  "kecamatan" TEXT,
+  "kabupaten" TEXT,
+  "rombongan_belajar_id" TEXT,
+  "detail_agama" TEXT,
+  "detail_akte_kelahiran" TEXT,
+  "detail_alamat" TEXT,
+  "detail_alat_transportasi" TEXT,
+  "detail_anak_ke" TEXT,
+  "detail_ayah_kebutuhan_khusus" TEXT,
+  "detail_ayah_nik" TEXT,
+  "detail_ayah_nama_lengkap" TEXT,
+  "detail_ayah_pekerjaan" TEXT,
+  "detail_ayah_pendidikan" TEXT,
+  "detail_ayah_penghasilan" TEXT,
+  "detail_ayah_tahun_lahir" TEXT,
+  "detail_desa_kelurahan" TEXT,
+  "detail_dusun" TEXT,
+  "detail_email" TEXT,
+  "detail_ibu_kebutuhan_khusus" TEXT,
+  "detail_ibu_nik" TEXT,
+  "detail_ibu_nama_lengkap" TEXT,
+  "detail_ibu_pekerjaan" TEXT,
+  "detail_ibu_pendidikan" TEXT,
+  "detail_ibu_penghasilan" TEXT,
+  "detail_ibu_tahun_lahir" TEXT,
+  "detail_jenis_tinggal" TEXT,
+  "detail_kebutuhan_khusus" TEXT,
+  "detail_kewarganegaraan" TEXT,
+  "detail_kode_pos" TEXT,
+  "detail_nama_bank" TEXT,
+  "detail_nama_kcp_unit" TEXT,
+  "detail_nama_kip" TEXT,
+  "detail_nama_rekening" TEXT,
+  "detail_nomor_hp" TEXT,
+  "detail_nomor_kip" TEXT,
+  "detail_nomor_kks" TEXT,
+  "detail_nomor_kps" TEXT,
+  "detail_nomor_rekening" TEXT,
+  "detail_nomor_telepon" TEXT,
+  "detail_propinsi" TEXT,
+  "detail_rt_rw" TEXT,
+  "detail_tempat_lahir" TEXT
+);
+

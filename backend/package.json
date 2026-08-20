@@ -12,7 +12,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "stream-json": "^1.9.1"
   },
   "engines": {
     "node": "^22.18.0 || >=24.12.0"

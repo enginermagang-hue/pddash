@@ -6,7 +6,9 @@
   ],
   "functions": {
     "api/[...path].mjs": {
-      "includeFiles": "backend/**, scripts/**"
+      "includeFiles": "backend/**, scripts/**",
+      "excludeFiles": "backend/db.sqlite",
+      "maxDuration": 60
     }
   }
 }
