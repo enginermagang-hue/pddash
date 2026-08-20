@@ -54,7 +54,7 @@ app.use('/api', requireAuth);
 
 app.get('/api/students', async (req, res) => {
   try {
-    const { rombel, kabupaten, kecamatan, tingkat, nama_sekolah, page, pageSize, q } = req.query
+    const { rombel, kabupaten, kecamatan, tingkat, nama_sekolah, page, pageSize, q, sortBy, sortDir } = req.query
     const pageNum = parseInt(page, 10)
     const pageSizeNum = parseInt(pageSize, 10)
     const usePagination = !Number.isNaN(pageNum) || !Number.isNaN(pageSizeNum)
@@ -68,9 +68,17 @@ app.get('/api/students', async (req, res) => {
         nama_sekolah: nama_sekolah || undefined,
         q: q || undefined,
         page: Number.isNaN(pageNum) ? 1 : pageNum,
-        pageSize: Number.isNaN(pageSizeNum) ? 20 : pageSizeNum
+        pageSize: Number.isNaN(pageSizeNum) ? 20 : pageSizeNum,
+        sortBy: sortBy || undefined,
+        sortDir: sortDir || undefined
       })
-      return res.json({ ...result, page: Number.isNaN(pageNum) ? 1 : pageNum, pageSize: Number.isNaN(pageSizeNum) ? 20 : pageSizeNum })
+      return res.json({
+        ...result,
+        page: Number.isNaN(pageNum) ? 1 : pageNum,
+        pageSize: Number.isNaN(pageSizeNum) ? 20 : pageSizeNum,
+        sortBy: sortBy || null,
+        sortDir: sortDir || null
+      })
     }
 
     if (rombel) {
@@ -114,14 +122,16 @@ app.get('/api/options', async (req, res) => {
 
 app.get('/api/students/export', async (req, res) => {
   try {
-    const { rombel, kabupaten, kecamatan, tingkat, nama_sekolah, q } = req.query
+    const { rombel, kabupaten, kecamatan, tingkat, nama_sekolah, q, sortBy, sortDir } = req.query
     const students = await getStudentsExport({
       rombel: rombel || undefined,
       kabupaten: kabupaten || undefined,
       kecamatan: kecamatan || undefined,
       tingkat: tingkat || undefined,
       nama_sekolah: nama_sekolah || undefined,
-      q: q || undefined
+      q: q || undefined,
+      sortBy: sortBy || undefined,
+      sortDir: sortDir || undefined
     })
     res.json(students)
   } catch (error) {

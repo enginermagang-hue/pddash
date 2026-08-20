@@ -39,6 +39,8 @@ const selectedKelas = ref('')
 const selectedSekolah = ref('')
 const selectedRombel = ref('')
 const search = ref('')
+const sortBy = ref<string | null>(null)
+const sortDir = ref<'asc' | 'desc' | null>(null)
 
 const kabupatenOptions = ref<string[]>([])
 const kecamatanOptions = ref<string[]>([])
@@ -108,6 +110,8 @@ async function exportCsv() {
     if (selectedSekolah.value) params.set('nama_sekolah', selectedSekolah.value)
     if (selectedRombel.value) params.set('rombel', selectedRombel.value)
     if (search.value.trim()) params.set('q', search.value.trim())
+    if (sortBy.value) params.set('sortBy', sortBy.value)
+    if (sortDir.value) params.set('sortDir', sortDir.value)
 
     const rows = (await apiFetch(`/api/students/export?${params.toString()}`)) as Student[]
 
@@ -176,6 +180,8 @@ async function fetchStudents() {
     if (selectedSekolah.value) params.set('nama_sekolah', selectedSekolah.value)
     if (selectedRombel.value) params.set('rombel', selectedRombel.value)
     if (search.value.trim()) params.set('q', search.value.trim())
+    if (sortBy.value) params.set('sortBy', sortBy.value)
+    if (sortDir.value) params.set('sortDir', sortDir.value)
 
     const result = await apiFetch(`/api/students?${params.toString()}`)
     students.value = result.data || []
@@ -243,6 +249,30 @@ function onKecamatanSelect() {
 
 function onSimpleFilterSelect() {
   resetAndFetch()
+}
+
+function onSortClick(key: string) {
+  if (sortBy.value !== key) {
+    sortBy.value = key
+    sortDir.value = 'asc'
+  } else if (sortDir.value === 'asc') {
+    sortDir.value = 'desc'
+  } else {
+    sortBy.value = null
+    sortDir.value = null
+  }
+  page.value = 1
+  fetchStudents()
+}
+
+function sortIcon(key: string): string {
+  if (sortBy.value !== key) return ''
+  return sortDir.value === 'desc' ? 'bi-chevron-down' : 'bi-chevron-up'
+}
+
+function sortAria(key: string): 'ascending' | 'descending' | 'none' {
+  if (sortBy.value !== key) return 'none'
+  return sortDir.value === 'desc' ? 'descending' : 'ascending'
 }
 
 function onSearchInput() {
@@ -488,9 +518,20 @@ onUnmounted(() => {
                 <th
                   v-for="col in visibleColumns"
                   :key="col.key"
-                  class="sticky top-0 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:border-slate-700 dark:bg-slate-700/60 dark:text-slate-200"
+                  :aria-sort="col.key === 'index' ? 'none' : sortAria(col.key)"
+                  class="sticky top-0 border-b-2 border-slate-300 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 select-none dark:border-slate-600 dark:bg-slate-700/60 dark:text-slate-200"
                 >
-                  {{ col.label }}
+                  <template v-if="col.key === 'index'">{{ col.label }}</template>
+                  <button
+                    v-else
+                    type="button"
+                    class="inline-flex items-center gap-1 rounded px-1 -mx-1 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:hover:bg-slate-700/40"
+                    :class="sortBy === col.key ? 'text-indigo-600 dark:text-indigo-400' : ''"
+                    @click="onSortClick(col.key)"
+                  >
+                    <span>{{ col.label }}</span>
+                    <i class="bi text-xs leading-none" :class="sortIcon(col.key)"></i>
+                  </button>
                 </th>
               </tr>
             </thead>

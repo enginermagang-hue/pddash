@@ -215,12 +215,21 @@ function buildWhere({ rombel, kabupaten, kecamatan, tingkat, nama_sekolah, q } =
   return { where, params }
 }
 
-async function getStudentsPaginated({ rombel, kabupaten, kecamatan, tingkat, nama_sekolah, q, page = 1, pageSize = 20 } = {}) {
+const SORTABLE_COLUMNS = ['nama', 'nisn', 'jenis_kelamin', 'tanggal_lahir', 'rombel', 'tingkat', 'nama_sekolah']
+
+function resolveSort(sortBy, sortDir) {
+  const safeBy = SORTABLE_COLUMNS.includes(sortBy) ? sortBy : 'nama'
+  const dir = String(sortDir || '').toLowerCase() === 'desc' ? 'DESC' : 'ASC'
+  return { column: safeBy, dir }
+}
+
+async function getStudentsPaginated({ rombel, kabupaten, kecamatan, tingkat, nama_sekolah, q, page = 1, pageSize = 20, sortBy, sortDir } = {}) {
   const database = await getClient()
   const offset = (page - 1) * pageSize
   const { where, params } = buildWhere({ rombel, kabupaten, kecamatan, tingkat, nama_sekolah, q })
+  const { column, dir } = resolveSort(sortBy, sortDir)
   const dataR = await database.execute({
-    sql: `SELECT * FROM students ${where} ORDER BY nama LIMIT ? OFFSET ?`,
+    sql: `SELECT * FROM students ${where} ORDER BY ${column} ${dir}, nama ASC LIMIT ? OFFSET ?`,
     args: [...params, pageSize, offset]
   })
   const countR = await database.execute({
@@ -231,11 +240,12 @@ async function getStudentsPaginated({ rombel, kabupaten, kecamatan, tingkat, nam
   return { data: dataR.rows, total: countRow ? countRow.total : 0 }
 }
 
-async function getStudentsExport(filters = {}) {
+async function getStudentsExport({ sortBy, sortDir, ...filters } = {}) {
   const database = await getClient()
   const { where, params } = buildWhere(filters)
+  const { column, dir } = resolveSort(sortBy, sortDir)
   const r = await database.execute({
-    sql: `SELECT * FROM students ${where} ORDER BY nama`,
+    sql: `SELECT * FROM students ${where} ORDER BY ${column} ${dir}, nama ASC`,
     args: params
   })
   return r.rows
