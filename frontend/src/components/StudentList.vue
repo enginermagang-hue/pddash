@@ -331,17 +331,6 @@ onUnmounted(() => {
 <template>
   <section class="flex items-start gap-6 p-8 max-md:flex-col max-md:p-4">
     <aside class="sticky top-20 flex w-64 shrink-0 flex-col gap-3 max-md:static max-md:top-auto max-md:w-full">
-      <div class="relative">
-        <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-        <input
-          class="w-full rounded-lg border border-slate-300 bg-white py-2 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-          type="text"
-          v-model="search"
-          @input="onSearchInput"
-          placeholder="Cari nama / NISN / NIK..."
-        />
-      </div>
-
       <button
         class="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700/40 md:hidden"
         @click="showFilters = !showFilters"
@@ -477,6 +466,17 @@ onUnmounted(() => {
     </div>
 
     <div class="min-w-0 flex-1">
+      <div class="relative mb-4 w-full">
+        <i class="bi bi-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input
+          class="min-h-[44px] w-full rounded-lg border border-slate-300 bg-white py-2 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+          type="text"
+          v-model="search"
+          @input="onSearchInput"
+          placeholder="Cari nama / NISN / NIK..."
+        />
+      </div>
+
       <div v-if="loading" class="p-8 text-center text-slate-500 dark:text-slate-400">Memuat data...</div>
       <div v-else-if="error" class="p-8 text-center text-red-600">{{ error }}</div>
 
