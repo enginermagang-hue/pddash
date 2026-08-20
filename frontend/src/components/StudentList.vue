@@ -435,6 +435,19 @@ onUnmounted(() => {
     </aside>
 
     <div
+      v-if="loading"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      role="status"
+      aria-live="polite"
+      aria-label="Memuat data"
+    >
+      <div class="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-5 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+        <i class="bi bi-arrow-clockwise animate-spin text-2xl text-indigo-600 dark:text-indigo-400"></i>
+        <span class="text-sm font-medium text-slate-700 dark:text-slate-200">Memuat data...</span>
+      </div>
+    </div>
+
+    <div
       v-if="showExport"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       @click.self="showExport = false"
@@ -507,7 +520,6 @@ onUnmounted(() => {
         />
       </div>
 
-      <div v-if="loading" class="p-8 text-center text-slate-500 dark:text-slate-400">Memuat data...</div>
       <div v-else-if="error" class="p-8 text-center text-red-600">{{ error }}</div>
 
       <div v-if="students.length">
