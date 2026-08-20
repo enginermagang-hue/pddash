@@ -488,7 +488,7 @@ onUnmounted(() => {
                 <th
                   v-for="col in visibleColumns"
                   :key="col.key"
-                  class="sticky top-0 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600 dark:bg-slate-700/60 dark:text-slate-200"
+                  class="sticky top-0 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:border-slate-700 dark:bg-slate-700/60 dark:text-slate-200"
                 >
                   {{ col.label }}
                 </th>
@@ -503,7 +503,7 @@ onUnmounted(() => {
                 <td
                   v-for="col in visibleColumns"
                   :key="col.key"
-                  class="border-b border-slate-100 px-3 py-2 text-left text-sm text-slate-700 dark:border-slate-700 dark:text-slate-200"
+                  class="border-b border-slate-100 px-4 py-3 text-left text-sm font-medium leading-snug text-slate-700 dark:border-slate-700 dark:text-slate-200"
                 >
                   <template v-if="col.key === 'index'">{{ rangeStart + index }}</template>
                   <template v-else-if="col.key === 'nama'">{{ student.nama }}</template>
@@ -529,7 +529,7 @@ onUnmounted(() => {
               <span class="font-semibold text-slate-800 dark:text-slate-100">{{ student.nama }}</span>
               <span class="shrink-0 text-xs text-slate-400">{{ rangeStart + index }}</span>
             </div>
-            <dl class="mt-3 space-y-1.5 text-sm">
+            <dl class="mt-3 space-y-2 text-sm">
               <div class="flex justify-between gap-3">
                 <dt class="text-slate-500 dark:text-slate-400">NISN</dt>
                 <dd class="text-right text-slate-700 dark:text-slate-200">{{ student.nisn }}</dd>
@@ -558,23 +558,25 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div class="mt-4 flex flex-wrap items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
-          <button
-            class="min-h-[44px] rounded-lg border border-slate-300 px-4 py-2 text-indigo-600 disabled:text-slate-300 dark:border-slate-600 dark:text-indigo-400 dark:disabled:text-slate-600"
-            @click="goToPage(page - 1)"
-            :disabled="page <= 1"
-          >
-            Sebelumnya
-          </button>
-          <span class="font-semibold text-slate-700 dark:text-slate-200">Halaman {{ page }} dari {{ totalPages }}</span>
-          <button
-            class="min-h-[44px] rounded-lg border border-slate-300 px-4 py-2 text-indigo-600 disabled:text-slate-300 dark:border-slate-600 dark:text-indigo-400 dark:disabled:text-slate-600"
-            @click="goToPage(page + 1)"
-            :disabled="page >= totalPages"
-          >
-            Berikutnya
-          </button>
-          <div class="flex w-full items-center justify-center gap-2 sm:w-auto sm:justify-start">
+        <div class="mt-4 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+          <div class="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
+            <button
+              class="min-h-[44px] rounded-lg border border-slate-300 px-4 py-2 text-indigo-600 disabled:text-slate-300 dark:border-slate-600 dark:text-indigo-400 dark:disabled:text-slate-600"
+              @click="goToPage(page - 1)"
+              :disabled="page <= 1"
+            >
+              Sebelumnya
+            </button>
+            <span class="whitespace-nowrap font-semibold text-slate-700 dark:text-slate-200">Halaman {{ page }} dari {{ totalPages }}</span>
+            <button
+              class="min-h-[44px] rounded-lg border border-slate-300 px-4 py-2 text-indigo-600 disabled:text-slate-300 dark:border-slate-600 dark:text-indigo-400 dark:disabled:text-slate-600"
+              @click="goToPage(page + 1)"
+              :disabled="page >= totalPages"
+            >
+              Berikutnya
+            </button>
+          </div>
+          <div class="flex flex-wrap items-center justify-center gap-2 border-t border-slate-100 pt-3 dark:border-slate-700 sm:justify-end">
             <span>Menampilkan {{ rangeStart }}–{{ rangeEnd }} dari {{ total }}</span>
             <label class="flex items-center gap-1">
               Baris:
