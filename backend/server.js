@@ -1,7 +1,11 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { initDb, getAllStudents, getStudentsByRomBel, getStudentsPaginated, getStudentsExport, getRombelList, getDistinctValues } from './database.js';
 import { requireAuth, generateToken } from './auth.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -9,7 +13,26 @@ const PORT = process.env.PORT || 3000
 app.use(cors())
 app.use(express.json())
 
-initDb().catch(console.error)
+let initPromise = null
+function ensureInit() {
+  if (!initPromise) {
+    initPromise = initDb().catch((err) => {
+      initPromise = null
+      throw err
+    })
+  }
+  return initPromise
+}
+
+app.use(async (req, res, next) => {
+  try {
+    await ensureInit()
+    next()
+  } catch (err) {
+    console.error('Database init failed:', err)
+    res.status(500).json({ error: 'Database initialization failed' })
+  }
+})
 
 // Public routes
 app.post('/api/login', (req, res) => {
@@ -117,8 +140,16 @@ app.get('/api/students/:rombel', async (req, res) => {
   }
 })
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`)
+  })
+}
+
+const distDir = path.join(__dirname, '../frontend/dist')
+app.use(express.static(distDir))
+app.get('*', (req, res) => {
+  res.sendFile(path.join(distDir, 'index.html'))
 })
 
 export default app

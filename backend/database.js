@@ -1,12 +1,11 @@
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
+import { createClient } from '@libsql/client'
 import path from 'path'
-import { fileURLToPath } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const dbPath = path.join(__dirname, 'db.sqlite')
 
-let db
+let client = null
+let initPromise = null
 
 const DETAIL_FIELDS = {
   'Detail > Agama': 'detail_agama',
@@ -65,63 +64,65 @@ function decodeEntities(value) {
     .replace(/&amp;/g, '&')
 }
 
+async function getClient() {
+  if (!client) {
+    const url = process.env.TURSO_URL || pathToFileURL(path.join(__dirname, 'db.sqlite')).href
+    client = createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN })
+  }
+  return client
+}
+
 async function ensureDetailColumns(database) {
-  const rows = await database.all("PRAGMA table_info(students)")
-  const existing = new Set(rows.map((r) => r.name))
+  const r = await database.execute("PRAGMA table_info(students)")
+  const existing = new Set(r.rows.map((row) => row.name))
   for (const col of DETAIL_COLUMNS) {
     if (!existing.has(col)) {
-      await database.run(`ALTER TABLE students ADD COLUMN "${col}" TEXT`)
+      await database.execute({ sql: `ALTER TABLE students ADD COLUMN "${col}" TEXT`, args: [] })
     }
   }
 }
 
-async function getDb() {
-  if (!db) {
-    db = await open({
-      filename: dbPath,
-      driver: sqlite3.Database
-    })
-  }
-  return db
-}
-
 async function initDb() {
-  const db = await getDb()
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS students (
-      id TEXT PRIMARY KEY,
-      nama TEXT NOT NULL,
-      nisn TEXT,
-      jenis_kelamin TEXT,
-      tanggal_lahir TEXT,
-      nama_ibu_kandung TEXT,
-      nik TEXT,
-      rombel TEXT,
-      tingkat TEXT,
-      last_update TEXT,
-      sekolah_id TEXT,
-      npsn TEXT,
-      nama_sekolah TEXT,
-      bentuk TEXT,
-      kecamatan TEXT,
-      kabupaten TEXT,
-      rombongan_belajar_id TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS file_versions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      filename TEXT NOT NULL,
-      file_path TEXT NOT NULL,
-      version INTEGER NOT NULL,
-      imported_at TEXT NOT NULL
-    );
-  `)
-  await ensureDetailColumns(db)
-  return db
+  if (initPromise) return initPromise
+  initPromise = (async () => {
+    const database = await getClient()
+    await database.execute(`
+      CREATE TABLE IF NOT EXISTS students (
+        id TEXT PRIMARY KEY,
+        nama TEXT NOT NULL,
+        nisn TEXT,
+        jenis_kelamin TEXT,
+        tanggal_lahir TEXT,
+        nama_ibu_kandung TEXT,
+        nik TEXT,
+        rombel TEXT,
+        tingkat TEXT,
+        last_update TEXT,
+        sekolah_id TEXT,
+        npsn TEXT,
+        nama_sekolah TEXT,
+        bentuk TEXT,
+        kecamatan TEXT,
+        kabupaten TEXT,
+        rombongan_belajar_id TEXT
+      )
+    `)
+    await database.execute(`
+      CREATE TABLE IF NOT EXISTS file_versions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        filename TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        version INTEGER NOT NULL,
+        imported_at TEXT NOT NULL
+      )
+    `)
+    await ensureDetailColumns(database)
+    return database
+  })()
+  return initPromise
 }
 
-async function insertStudent(student) {
-  const db = await getDb()
+function insertStatement(student) {
   const detailValues = DETAIL_COLUMNS.map((col) => {
     const jsonKey = DETAIL_JSON_TO_COL[col]
     const raw = student[jsonKey]
@@ -136,9 +137,9 @@ async function insertStudent(student) {
   ]
   const placeholders = columns.map(() => '?').join(', ')
 
-  await db.run(
-    `INSERT OR REPLACE INTO students (${columns.join(', ')}) VALUES (${placeholders})`,
-    [
+  return {
+    sql: `INSERT OR REPLACE INTO students (${columns.join(', ')}) VALUES (${placeholders})`,
+    args: [
       student.peserta_didik_id,
       student.nama,
       student.nisn,
@@ -158,17 +159,27 @@ async function insertStudent(student) {
       student.rombongan_belajar_id,
       ...detailValues
     ]
-  )
+  }
+}
+
+async function insertStudent(student) {
+  const database = await getClient()
+  await database.execute(insertStatement(student))
 }
 
 async function getAllStudents() {
-  const db = await getDb()
-  return db.all('SELECT * FROM students ORDER BY nama')
+  const database = await getClient()
+  const r = await database.execute('SELECT * FROM students ORDER BY nama')
+  return r.rows
 }
 
 async function getStudentsByRomBel(rombel) {
-  const db = await getDb()
-  return db.all('SELECT * FROM students WHERE rombel = ? ORDER BY nama', [rombel])
+  const database = await getClient()
+  const r = await database.execute({
+    sql: 'SELECT * FROM students WHERE rombel = ? ORDER BY nama',
+    args: [rombel]
+  })
+  return r.rows
 }
 
 function buildWhere({ rombel, kabupaten, kecamatan, tingkat, nama_sekolah, q } = {}) {
@@ -205,32 +216,37 @@ function buildWhere({ rombel, kabupaten, kecamatan, tingkat, nama_sekolah, q } =
 }
 
 async function getStudentsPaginated({ rombel, kabupaten, kecamatan, tingkat, nama_sekolah, q, page = 1, pageSize = 20 } = {}) {
-  const db = await getDb()
+  const database = await getClient()
   const offset = (page - 1) * pageSize
   const { where, params } = buildWhere({ rombel, kabupaten, kecamatan, tingkat, nama_sekolah, q })
-  const data = await db.all(
-    `SELECT * FROM students ${where} ORDER BY nama LIMIT ? OFFSET ?`,
-    [...params, pageSize, offset]
-  )
-  const countRow = await db.get(
-    `SELECT COUNT(*) AS total FROM students ${where}`,
-    params
-  )
-  return { data, total: countRow ? countRow.total : 0 }
+  const dataR = await database.execute({
+    sql: `SELECT * FROM students ${where} ORDER BY nama LIMIT ? OFFSET ?`,
+    args: [...params, pageSize, offset]
+  })
+  const countR = await database.execute({
+    sql: `SELECT COUNT(*) AS total FROM students ${where}`,
+    args: params
+  })
+  const countRow = countR.rows[0]
+  return { data: dataR.rows, total: countRow ? countRow.total : 0 }
 }
 
 async function getStudentsExport(filters = {}) {
-  const db = await getDb()
+  const database = await getClient()
   const { where, params } = buildWhere(filters)
-  return db.all(`SELECT * FROM students ${where} ORDER BY nama`, params)
+  const r = await database.execute({
+    sql: `SELECT * FROM students ${where} ORDER BY nama`,
+    args: params
+  })
+  return r.rows
 }
 
 async function getRombelList() {
-  const db = await getDb()
-  const rows = await db.all(
+  const database = await getClient()
+  const r = await database.execute(
     `SELECT DISTINCT rombel FROM students WHERE rombel IS NOT NULL AND rombel != '' ORDER BY rombel`
   )
-  return rows.map((r) => r.rombel)
+  return r.rows.map((row) => row.rombel)
 }
 
 const DISTINCT_FIELD_WHITELIST = ['kabupaten', 'kecamatan', 'tingkat', 'rombel', 'nama_sekolah']
@@ -239,7 +255,7 @@ async function getDistinctValues(field, { kabupaten, kecamatan } = {}) {
   if (!DISTINCT_FIELD_WHITELIST.includes(field)) {
     throw new Error(`Invalid field: ${field}`)
   }
-  const db = await getDb()
+  const database = await getClient()
   const conditions = []
   const params = []
   conditions.push(`${field} IS NOT NULL AND ${field} != ''`)
@@ -255,24 +271,25 @@ async function getDistinctValues(field, { kabupaten, kecamatan } = {}) {
   const orderBy = field === 'tingkat'
     ? `ORDER BY CAST(REPLACE(${field}, 'Kelas ', '') AS INTEGER)`
     : `ORDER BY ${field}`
-  const rows = await db.all(
-    `SELECT DISTINCT ${field} FROM students ${where} ${orderBy}`,
-    params
-  )
-  return rows.map((r) => r[field])
+  const r = await database.execute({
+    sql: `SELECT DISTINCT ${field} FROM students ${where} ${orderBy}`,
+    args: params
+  })
+  return r.rows.map((row) => row[field])
 }
 
 async function recordFileVersion(filename, filePath, version) {
-  const db = await getDb()
-  await db.run(`
-    INSERT INTO file_versions (filename, file_path, version, imported_at)
-    VALUES (?, ?, ?, datetime('now'))
-  `, [filename, filePath, version])
+  const database = await getClient()
+  await database.execute({
+    sql: `INSERT INTO file_versions (filename, file_path, version, imported_at) VALUES (?, ?, ?, datetime('now'))`,
+    args: [filename, filePath, version]
+  })
 }
 
 export {
-  getDb,
+  getClient,
   initDb,
+  insertStatement,
   insertStudent,
   getAllStudents,
   getStudentsByRomBel,
