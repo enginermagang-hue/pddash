@@ -520,7 +520,7 @@ onUnmounted(() => {
         />
       </div>
 
-      <div v-else-if="error" class="p-8 text-center text-red-600">{{ error }}</div>
+      <div v-if="!loading && error" class="p-8 text-center text-red-600">{{ error }}</div>
 
       <div v-if="students.length">
         <div class="hidden min-w-0 flex-1 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 md:block">
